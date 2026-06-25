@@ -43,7 +43,17 @@ APP_NAME=your_app_name
 ENV=Development
 DEBUG=True
 
+## Package Manager
+This project uses [uv](https://github.com/astral-sh/uv) — the ultra-fast Python package manager built in Rust, 10-100x faster than pip.
 
+To install dependencies with uv:
+1. Install uv: pip install uv
+2. Install dependencies: uv pip install -r requirements.txt
+
+A `uv.lock` file is included for fully reproducible installs — every package and its dependencies locked to exact versions.
+
+Alternatively, standard pip works fine:
+pip install -r requirements.txt
 
 
 
