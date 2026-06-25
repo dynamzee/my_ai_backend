@@ -43,7 +43,7 @@ APP_NAME=your_app_name
 ENV=Development
 DEBUG=True
 
-## Package Manager
+## Package Manager:
 This project uses [uv](https://github.com/astral-sh/uv) — the ultra-fast Python package manager built in Rust, 10-100x faster than pip.
 
 To install dependencies with uv:
@@ -54,6 +54,14 @@ A `uv.lock` file is included for fully reproducible installs — every package a
 
 Alternatively, standard pip works fine:
 pip install -r requirements.txt
+
+## Live Demo:
+API is live at: https://my-ai-backend-p1m9.onrender.com
+
+Interactive docs: https://my-ai-backend-p1m9.onrender.com/docs
+
+## API Documentation Preview:
+![API Docs](pictures/docs-preview.png)
 
 
 
