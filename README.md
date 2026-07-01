@@ -61,7 +61,6 @@ API is live at: https://my-ai-backend-p1m9.onrender.com
 Interactive docs: https://my-ai-backend-p1m9.onrender.com/docs
 
 ## API Documentation Preview:
-![API Docs](pictures/docs-preview.png)
-
+![/docs preview.](pictures/docs-preview.png)
 
 

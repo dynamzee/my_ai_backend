@@ -1,15 +1,19 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Security, Depends
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
-from fastapi import HTTPException
 from pydantic_settings import BaseSettings
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security.api_key import APIKeyHeader
 from routers import notes, users
 from services.github import get_github_user
+import time
+from loguru import logger
 
 class Settings(BaseSettings):
     app_name: str
     env: str
     debug: bool
+    api_key: str
 
     class Config:
         env_file = ".env"
@@ -17,8 +21,13 @@ class Settings(BaseSettings):
 app = FastAPI()
 settings = Settings()
 
-app.include_router(notes.router)
-app.include_router(users.router)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
 @app.exception_handler(404)
 async def error_handler(request: Request, exc: HTTPException):
@@ -30,6 +39,31 @@ async def error_handler(request: Request, exc: HTTPException):
             "message": exc.detail
         }
     )
+
+API_KEY_NAME = "X-API-Key"
+api_key_header = APIKeyHeader(name= API_KEY_NAME)
+
+async def verify_api_key(api_key: str = Security(api_key_header)):
+    if api_key != settings.api_key:
+        raise HTTPException(
+            status_code=403,
+            detail="Invalid/Missing api_key."
+        )
+
+app.include_router(notes.router, dependencies=[Depends(verify_api_key)])
+app.include_router(users.router, dependencies=[Depends(verify_api_key)])
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    duration = time.time() - start_time
+    logger.info(
+        f"{request.method} {request.url.path}."
+        f">> {response.status_code}."
+        f">> ({duration:.3f})s."
+    )
+    return response
 
 @app.get("/")
 async def root():
@@ -47,10 +81,5 @@ async def health():
 @app.get("/github/{username}")
 async def fetch_github_user(username: str):
     return await get_github_user(username)
-
-
-
-
-
 
 
