@@ -1,10 +1,10 @@
 from fastapi import FastAPI, HTTPException, Security, Depends
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security.api_key import APIKeyHeader
-from routers import notes, users
+from routers import notes, users, claude_route
 from services.github import get_github_user
 import time
 from loguru import logger
@@ -14,9 +14,12 @@ class Settings(BaseSettings):
     env: str
     debug: bool
     api_key: str
+    anthropic_api_key: str
 
-    class Config:
-        env_file = ".env"
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        extra="ignore"
+    )
 
 app = FastAPI()
 settings = Settings()
@@ -52,6 +55,7 @@ async def verify_api_key(api_key: str = Security(api_key_header)):
 
 app.include_router(notes.router, dependencies=[Depends(verify_api_key)])
 app.include_router(users.router, dependencies=[Depends(verify_api_key)])
+app.include_router(claude_route.router, dependencies=[Depends(verify_api_key)])
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
