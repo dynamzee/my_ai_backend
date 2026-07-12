@@ -1,11 +1,11 @@
-# AI Backend — Notes API: 
-A notes app that is powered by FastAPI and pydantic's verification and formatting models (BaseSettings & BaseModel), built on CRUD principle; it allows users to create, read, update or delete notes through these various endpoints.
+# AI Backend —> Notes API, FastAPI (pydantic) + Claude AI Integration: 
+A notes app that is powered by FastAPI and pydantic's verification and formatting models (BaseSettings & BaseModel), built on CRUD principle; it allows users to create, read, update or delete notes through these various endpoints, live AI chat endpoint powered by Claude-sonnet 4.6, GitHub user look-up, CORS middleware, API_Key authentication and request logging (method, path, status_code & duration) using loguru.
 
 ## What it does: 
-At its core, it uses CRUD [CREATE - READ - UPDATE - DELETE]. "CREATE" under a 'POST' endpoint allows the user to create a note with the 'title' and 'content' while an 'ID' is automatically assigned to the note, "READ" under a 'GET' endpoint allows the user to retrieve note/notes content; either returning a specific note with the 'note_id' or returning all existing note through a python list, an "UPDATE" under a 'PUT' endpoint that allows you to update (change) the 'title', 'content' or both of a note while the note retains its ID and a "DELETE" under a 'DELETE' endpoint that allows the user to delete a note by using the specific 'note_id'.
+At its core, it uses CRUD [CREATE - READ - UPDATE - DELETE]. "CREATE" under a 'POST' endpoint allows the user to create a note with the 'title' and 'content' while an 'ID' is automatically assigned to the note, "READ" under a 'GET' endpoint allows the user to retrieve note/notes content; either returning a specific note with the 'note_id' or returning all existing note through a python list, an "UPDATE" under a 'PUT' endpoint that allows you to update (change) the 'title', 'content' or both of a note while the note retains its ID and a "DELETE" under a 'DELETE' endpoint that allows the user to delete a note by using the specific 'note_id', it also allows you to make AI calls to the anthropic API and also look-up GitHub accounts with username provided to retrieve 'login (username), name, number of followers and public_repos.'
  
 ## Tech Stack: 
-Python 3.12, FastAPI 0.100+, Pydantic v2.
+Python 3.12, FastAPI 0.100+, Pydantic v2, Anthropic Claude Sonnet 4.6 and Loguru.
 
 ## How to run it locally:
 1. Clone the repository
@@ -37,11 +37,14 @@ Python 3.12, FastAPI 0.100+, Pydantic v2.
 | PUT | /notes/{note_id} | Update a note |
 | DELETE | /notes/{note_id} | Delete a note |
 | GET | /github/{username} | Fetch GitHub user info |
+| POST | /claude_ai/chat | Chat with Claude AI  |
 
 ## Environment Variables:
 APP_NAME=your_app_name
 ENV=Development
 DEBUG=True
+API_KEY=your_api_key_for_authorization
+ANTHROPIC_API_KEY=your_api_key_from_anthropic(sk-ant-api03)_for_ai_calls
 
 ## Package Manager:
 This project uses [uv](https://github.com/astral-sh/uv) — the ultra-fast Python package manager built in Rust, 10-100x faster than pip.
