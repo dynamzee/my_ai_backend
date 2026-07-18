@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security.api_key import APIKeyHeader
-from routers import notes, users, claude_route
+from routers import notes, users, claude_one_off, claude_with_memory
 from services.github import get_github_user
 import time
 from loguru import logger
@@ -55,7 +55,8 @@ async def verify_api_key(api_key: str = Security(api_key_header)):
 
 app.include_router(notes.router, dependencies=[Depends(verify_api_key)])
 app.include_router(users.router, dependencies=[Depends(verify_api_key)])
-app.include_router(claude_route.router, dependencies=[Depends(verify_api_key)])
+app.include_router(claude_one_off.router, dependencies=[Depends(verify_api_key)])
+app.include_router(claude_with_memory.router, dependencies=[Depends(verify_api_key)])
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
