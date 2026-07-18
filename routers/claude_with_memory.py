@@ -1,13 +1,24 @@
 import os
 import anthropic
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from fastapi import APIRouter, HTTPException
 from loguru import logger
+
+class Settings(BaseSettings):
+    anthropic_api_key: str
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        extra="ignore"
+    )
+
+settings = Settings()
 
 from schemas.claude import ClaudeRequest, ClaudeResponse, ClaudeMessage
 
 router = APIRouter(prefix="/claude_with_memory", tags=["Claude chat --> Multi-turn."])
 
-client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
 
 @router.post("/claude", response_model=ClaudeResponse)
 async def multi_turn_chat(claude: ClaudeRequest):
