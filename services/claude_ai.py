@@ -1,16 +1,6 @@
 import anthropic
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from config_settings import settings
 from fastapi import HTTPException
-
-class Settings(BaseSettings):
-    anthropic_api_key: str
-
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        extra="ignore"
-    )
-
-settings = Settings()
 
 async def generate_claude_ai_response(user_message: str, system_prompt: str = None) -> str:
     try:
