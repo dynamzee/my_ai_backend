@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from services.claude_ai import generate_claude_ai_response
 
-router = APIRouter(prefix="claude_one_off", tags=["CLAUDE_ONE_OFF."])
+router = APIRouter(prefix="/claude_one_off", tags=["CLAUDE_ONE_OFF."])
 
 class ClaudeAIRequest(BaseModel):
     message: str
