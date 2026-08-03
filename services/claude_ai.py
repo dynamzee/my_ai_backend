@@ -4,9 +4,7 @@ from fastapi import HTTPException
 
 async def generate_claude_ai_response(user_message: str, system_prompt: str = None) -> str:
     try:
-        client = anthropic.Anthropic(
-            api_key=settings.anthropic_api_key
-        )
+        client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
 
         parameters = {
             "model": "claude-sonnet-4-6",
