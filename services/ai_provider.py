@@ -1,5 +1,5 @@
 """
-PROVIDER-AGNOSTIC AI SERVICE LAYER.
+AGNOSTIC-AI PROVIDER LAYER SERVICE.
 
 The problem this solves?
 My endpoints shouldn't care about which LLM they're talking to -- same structure built-in.
