@@ -61,6 +61,21 @@ using today's date above.
 or after it.
 """
 
+def strip_markdown_fences(raw_response: str) -> str:
+    """
+    Cleans up JSON that arrives wrapped in ```json fences.
+    Prefill is no longer available on this claude-sonnet-4-6.
+    Nothing structurally forces Claude to skip the fences — this catches it when it doesn't comply.
+    """
+    cleaned = raw_response.strip()
+    if cleaned.startswith("```"):
+        lines = cleaned.split("\n")
+        lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        cleaned = "\n".join(lines).strip()
+    return cleaned
+
 def extract_task(text: str) -> ExtractedTask:
     """
     PROMPT CALL NO.1 in the chain.
@@ -79,8 +94,7 @@ def extract_task(text: str) -> ExtractedTask:
             max_tokens=1024,
             system=build_extraction_system_prompt(),
             messages=[
-                {"role": "user", "content": wrapped_input},
-                {"role": "assistant", "content": "{"}
+                {"role": "user", "content": wrapped_input}
             ]
         )
     except anthropic.APIStatusError as error:
@@ -90,20 +104,20 @@ def extract_task(text: str) -> ExtractedTask:
         logger.error(f"ANTHROPIC API CONNECTION ERROR: {error}")
         raise ValueError(f"COULDN'T CONNECT TO ANTHROPIC API!")
 
-    raw_json_from_anthropic = "{" + response.content[0].text
+    raw_json_from_anthropic = strip_markdown_fences(response.content[0].text)
 
     try:
         parsed_data = json.loads(raw_json_from_anthropic)
     except json.JSONDecodeError as error:
         logger.error(f"CLAUDE RETURNED INVALID JSON: {raw_json_from_anthropic[:200]}")
         raise ValueError(f"ANTHROPIC DID NOT RETURN VALID JSON: {error}")
-        """
-        This is the real safety boundary -- not the prompt wording above it.
-        Even if injected text influences the content, the shape is enforced
-        here. Priority can either be "low", "medium" or "high". Title and category
-        must be strings. Anything else fails right here before it even attempt to
-        reach the rest of the app.
-        """
+
+    # This is the real safety boundary -- not the prompt wording above it.
+    # Even if injected text influences the content, the shape is enforced here.
+    # Priority can either be "low", "medium" or "high".
+    # Title and category must be strings.
+    # Anything else fails right here before it even attempt to reach the rest of the app.
+
     task = ExtractedTask(**parsed_data)
 
     logger.info(f"TASK EXTRACTED= title: {task.title}| priority: {task.priority}")
@@ -113,7 +127,6 @@ NOTIFICATION_SYSTEM_PROMPT="""You write a short professional team-channel notifi
 One or two sentences. No greeting, no sign-off. Just solely the notification task itself."""
 
 def generate_notification(task: ExtractedTask) -> str:
-    humanized_date = humanize_date(task.due_date) if task.due_date else "not specified"
     """
     PROMPT CALL NO.2 in the chain.
 
@@ -122,6 +135,8 @@ def generate_notification(task: ExtractedTask) -> str:
     Claude never sees the user's original raw text here, only the clean, structured
     task. Each call does one job well instead of one trying to do everything at once.
     """
+    humanized_date = humanize_date(task.due_date) if task.due_date else "not specified"
+
     task_summary = (
         f"TITLE: {task.title}\n"
         f"PRIORITY: {task.priority}\n"
@@ -141,7 +156,7 @@ def generate_notification(task: ExtractedTask) -> str:
         logger.error(f"ANTHROPIC API ERROR= {error.status_code}: {error.message}")
         raise ValueError(f"ANTHROPIC API ERROR: {error.message}")
     except anthropic.APIConnectionError as error:
-        logger.error(f"COULDN'T CONNECT TO ANTHROPIC: {error.message}")
+        logger.error(f"COULDN'T CONNECT TO ANTHROPIC: {error}")
         raise ValueError("COULDN'T REACH ANTHROPIC API!")
 
     return response.content[0].text.strip()
