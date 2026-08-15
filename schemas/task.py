@@ -3,10 +3,10 @@ from typing import Literal, Optional
 
 class ExtractedTask(BaseModel):
     """
-    The exact shape we force Claude's output into.
+    The exact shape that Claude's output will be forced into.
 
     Same pydantic pattern I've used for every client request so far;
-    the difference is that now-- it validates the AI OUTPUT instead of the CLIENT'S INPUT.
+    the difference is that now-- it validates the AI (Claude) OUTPUT instead of the CLIENT'S INPUT.
 
     Same principle applies: To not trust text that you didn't generate by yourself.
     The AI's input is untrusted input, exactly like a request body.

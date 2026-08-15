@@ -7,10 +7,11 @@ then I'd defensively validate whatever comes back, exactly like I'd validate any
 other untrusted input.
 
 TWO (2) TECHNIQUES STACK TOGETHER FOR THIS:
-1. RESPONSE PREFILL: seed the assistant's turn with "{" so Claude has to continue
-as if it has already started writing JSON.
+1. # Layer 1= STRIPPING MARKDOWN FENCES: claude-sonnet-4-6 (the Claude model I'm using for this project) does
+not support PREFILLING the assistant's response, so I had to create a function which strips the ''' JSON
+markdown fences before json.loads() converts it to a dict that python can work with.
 
-2. PYDANTIC VALIDATION ON THE WAY OUT: even with prefill, raw strings aren't to be trusted.
+2. # Layer 2= PYDANTIC VALIDATION ON THE WAY OUT: raw strings aren't to be trusted.
 parse it, then validate it against a schema. If Claude returns "priority": "urgent" instead
 of one of the 3 allowed value (low, medium, high)-- pydantic catches it before it goes anywhere
 near the rest of my app.
@@ -26,7 +27,7 @@ from utilities import humanize_date
 
 client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
 
-def build_extraction_system_prompt() -> str:
+def task_extraction_system_prompt() -> str:
     """
     Claude has no built-in awareness of "today" through the raw API --
     unlike claude.ai chat interface, a bare API call gets no date context
@@ -67,34 +68,34 @@ def strip_markdown_fences(raw_response: str) -> str:
     Prefill is no longer available on this claude-sonnet-4-6.
     Nothing structurally forces Claude to skip the fences — this catches it when it doesn't comply.
     """
-    cleaned = raw_response.strip()
-    if cleaned.startswith("```"):
-        lines = cleaned.split("\n")
+    cleaned_text = raw_response.strip()
+    if cleaned_text.startswith("```"):
+        lines = cleaned_text.split("\n")
         lines = lines[1:]
         if lines and lines[-1].strip() == "```":
             lines = lines[:-1]
-        cleaned = "\n".join(lines).strip()
-    return cleaned
+        cleaned_text = "\n".join(lines).strip()
+    return cleaned_text
 
 def extract_task(text: str) -> ExtractedTask:
     """
     PROMPT CALL NO.1 in the chain.
 
-    Wrapping the user's raw text in <user_text> tags is what lets Claude
+    Wrapping the user's raw text in <user_text> tags so that Claude can
     tell the difference between "data to process" and "instructions to "obey".
     This is the same delimiting pattern Anthropic's own docs recommend for exactly
     this reason.
     """
-    wrapped_input = f"<user_text>\n{text}\n</user_text>"
-    logger.info(f"EXTRACTING TASK| INPUT| '{text[:60]}'")
+    user_message = f"<user_text>\n{text}\n</user_text>"
+    logger.info(f"EXTRACTING TASK! INPUT: '{text[:60]}'")
 
     try:
         response = client.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=1024,
-            system=build_extraction_system_prompt(),
+            system=task_extraction_system_prompt(),
             messages=[
-                {"role": "user", "content": wrapped_input}
+                {"role": "user", "content": user_message}
             ]
         )
     except anthropic.APIStatusError as error:
@@ -109,7 +110,7 @@ def extract_task(text: str) -> ExtractedTask:
     try:
         parsed_data = json.loads(raw_json_from_anthropic)
     except json.JSONDecodeError as error:
-        logger.error(f"CLAUDE RETURNED INVALID JSON: {raw_json_from_anthropic[:200]}")
+        logger.error(f"ANTHROPIC RETURNED INVALID JSON: {raw_json_from_anthropic[:200]}")
         raise ValueError(f"ANTHROPIC DID NOT RETURN VALID JSON: {error}")
 
     # This is the real safety boundary -- not the prompt wording above it.
@@ -133,11 +134,11 @@ def generate_notification(task: ExtractedTask) -> str:
     This is what prompt chaining actually means: the OUTPUT of extract_task()
     -- which is a validated ExtractedTask object-- becomes the input to this call.
     Claude never sees the user's original raw text here, only the clean, structured
-    task. Each call does one job well instead of one trying to do everything at once.
+    generated task. Each call does one job well instead of one trying to do everything at once.
     """
     humanized_date = humanize_date(task.due_date) if task.due_date else "not specified"
 
-    task_summary = (
+    task_info = (
         f"TITLE: {task.title}\n"
         f"PRIORITY: {task.priority}\n"
         f"CATEGORY: {task.category}\n"
@@ -150,13 +151,13 @@ def generate_notification(task: ExtractedTask) -> str:
             model="claude-sonnet-4-6",
             max_tokens=1024,
             system=NOTIFICATION_SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": task_summary}]
+            messages=[{"role": "user", "content": task_info}]
         )
     except anthropic.APIStatusError as error:
         logger.error(f"ANTHROPIC API ERROR= {error.status_code}: {error.message}")
         raise ValueError(f"ANTHROPIC API ERROR: {error.message}")
     except anthropic.APIConnectionError as error:
-        logger.error(f"COULDN'T CONNECT TO ANTHROPIC: {error}")
+        logger.error(f"COULDN'T CONNECT TO ANTHROPIC API: {error}")
         raise ValueError("COULDN'T REACH ANTHROPIC API!")
 
     return response.content[0].text.strip()

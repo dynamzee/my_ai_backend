@@ -31,7 +31,7 @@ async def task_pipeline_endpoint(request: TaskExtractionRequest):
 
     The full chain in one call:
     1. Extract a structured task from raw text (AI CALL NO.1).
-    2. Generate a notification message FROM that structured task (AI CALL NO.2).
+    2. Generate a notification message FROM that structured extracted task (AI CALL NO.2).
 
     Two AI calls, one endpoint, each call doing one job.
     """

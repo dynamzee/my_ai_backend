@@ -1,10 +1,10 @@
 from datetime import datetime
 
-
 def humanize_date(iso_format_date: str) -> str:
     """
-    Converts an ISO date (2026-04-13) into human-readable form (13th April 2026).
-    Used for anything human-facing — never for fields your code still needs to compare or sort.
+    Converts an ISO date (2026-08-12) into human-readable form (12th August 2026).
+    Not for fields that my code still needs to compare or sort, just for the notification
+    that will be read by users.
     """
     date_time = datetime.strptime(iso_format_date, "%Y-%m-%d")
     day = date_time.day
