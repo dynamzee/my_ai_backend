@@ -57,7 +57,7 @@ app.include_router(openai_one_off.router, dependencies=[Depends(verify_api_key)]
 app.include_router(ai_provider_chat.router, dependencies=[Depends(verify_api_key)])
 app.include_router(task_extraction.router, dependencies=[Depends(verify_api_key)])
 app.include_router(semantic_search.router, dependencies=[Depends(verify_api_key)])
-app.include_router(vector_store.router, dependencies=[Depends(verify_api_key)])
+app.include_router(vector_store_search.router, dependencies=[Depends(verify_api_key)])
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
