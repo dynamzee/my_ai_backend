@@ -4,12 +4,20 @@ from fastapi.responses import JSONResponse
 from config_settings import settings
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security.api_key import APIKeyHeader
-from routers import notes, users, claude_one_off, claude_with_memory, claude_streaming, openai_one_off, ai_provider_chat, task_extraction, semantic_search
+from routers import notes, users, claude_one_off, claude_with_memory, claude_streaming, openai_one_off, ai_provider_chat, task_extraction, semantic_search, vector_store_search
 from services.github import get_github_user
 import time
 from loguru import logger
+from contextlib import asynccontextmanager
+from database_connection import connect_to_database, close_database_connection
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await connect_to_database()
+    yield
+    await close_database_connection()
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -49,6 +57,7 @@ app.include_router(openai_one_off.router, dependencies=[Depends(verify_api_key)]
 app.include_router(ai_provider_chat.router, dependencies=[Depends(verify_api_key)])
 app.include_router(task_extraction.router, dependencies=[Depends(verify_api_key)])
 app.include_router(semantic_search.router, dependencies=[Depends(verify_api_key)])
+app.include_router(vector_store.router, dependencies=[Depends(verify_api_key)])
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
@@ -73,7 +82,7 @@ async def root():
 
 @app.get("/health")
 async def health():
-    return {"status": "Health is wealth. 🙂‍↔️"}
+    return {"status": "Healthy.️"}
 
 @app.get("/github/{username}")
 async def fetch_github_user(username: str):
