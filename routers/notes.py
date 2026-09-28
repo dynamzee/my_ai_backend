@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from schemas.notes import Note, NoteResponse
 
-router = APIRouter()
+router = APIRouter(tags=["NOTES."])
 
 notes_counter: int = 0
 notes_database: dict = {}

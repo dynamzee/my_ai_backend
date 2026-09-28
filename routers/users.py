@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from schemas.users import User
 
-router = APIRouter()
+router = APIRouter(tags=["USERS."])
 
 @router.post("/users")
 async def create_new_user(user: User):

@@ -5,7 +5,7 @@ from loguru import logger
 
 from schemas.claude import ClaudeRequest, ClaudeResponse, ClaudeMessage
 
-router = APIRouter(prefix="/claude_with_memory", tags=["Claude chat --> Multi-turn."])
+router = APIRouter(prefix="/claude_with_memory", tags=["Claude chat -- Multi-turn."])
 
 client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
 
