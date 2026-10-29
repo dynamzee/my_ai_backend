@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from config_settings import settings
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security.api_key import APIKeyHeader
-from routers import notes, users, claude_one_off, claude_with_memory, claude_streaming, openai_one_off, ai_provider_chat, task_extraction, semantic_search, vector_store_search
+from routers import notes, users, claude_one_off, claude_with_memory, claude_streaming, openai_one_off, ai_provider_chat, task_extraction, semantic_search, vector_store_search, rag_pipeline
 from services.github import get_github_user
 import time
 from loguru import logger
@@ -58,6 +58,7 @@ app.include_router(ai_provider_chat.router, dependencies=[Depends(verify_api_key
 app.include_router(task_extraction.router, dependencies=[Depends(verify_api_key)])
 app.include_router(semantic_search.router, dependencies=[Depends(verify_api_key)])
 app.include_router(vector_store_search.router, dependencies=[Depends(verify_api_key)])
+app.include_router(rag_pipeline.router, dependencies=[Depends(verify_api_key)])
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
