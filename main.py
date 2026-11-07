@@ -75,7 +75,7 @@ async def log_requests(request: Request, call_next):
 @app.get("/")
 async def root():
     return {
-        "status": "I'm alive!",
+        "status": "app is up and running!",
         "app_name": settings.app_name,
         "env": settings.env,
         "debug": settings.debug

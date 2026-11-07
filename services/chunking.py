@@ -14,22 +14,18 @@ def chunk_text(text: str, chunk_size: int = 1000, overlap: int = 200) -> list[st
     Without overlap, chunk 1 might end mid-thought, and chunk 2 opens with zero context for finishing
     it. A 200-character overlap means the tail of one chunk reappears at the start of the next, so a boundary
     rarely destroys meaning completely.
-
-    Intentionally simple -- a straight slice, not sentence-aware or paragraph-aware. Real production RAG
-    systems often chunk more carefully. This is the starting point: understanding plain chunking before
-    reaching for something smarter.
     """
     if overlap >= chunk_size:
         raise ValueError("overlap must be smaller than chunk_size, or chunking never advances.")
 
     chunks = []
-    start = 0
-    while start < len(text):
-        end = start + chunk_size
-        chunk = text[start:end].strip()
+    chunks_start = 0
+    while chunks_start < len(text):
+        chunks_end = chunks_start + chunk_size
+        chunk = text[chunks_start:chunks_end].strip()
         if chunk:
             chunks.append(chunk)
-        start += chunk_size - overlap
+        chunks_start += chunk_size - overlap
 
     return chunks
 

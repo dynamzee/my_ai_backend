@@ -14,8 +14,8 @@ async def ingest_document(file: UploadFile = File(...)):
 
     Accepts a text file, chunks it, embeds every chunk, stores all of them.
 
-    file.read() returns raw BYTES - same as every response I've decoded since day 16.
-    .decode("utf-8") turns those bytes into a real string before chunking touches it.
+    file.read() returns raw BYTES - .decode("utf-8") turns those bytes into a
+    real string before chunking touches it.
     """
     raw_bytes = await file.read()
 
@@ -48,7 +48,7 @@ async def ask_endpoint(request: AskRequest):
     POST /documents/ask
 
     The full RAG loop: embed the question, retrieve the closest stored chunks, hand them to Claude
-    as grounding, return a traceable answer.
+    as grounding, Claude returns a traceable answer.
     """
     try:
         result = await answer_from_provided_documents(request.question, request.limit, request.source_document)

@@ -3,16 +3,15 @@ RAG -- RETRIEVAL AUGMENTED GENERATION.
 
 Every piece already exists in this project, Today wires them together.
 
-RETRIEVAL: search_similar_chunks() from day 20 finds the chunk whose meaning is closest to the question.
+RETRIEVAL: search_similar_chunks() finds the chunks whose meaning is closest to the question.
 
 AUGMENTED: those chunks get inserted directly into the prompt sent to Claude-- thereby "augmenting" what
 Claude would otherwise only know from its own training.
 
 GENERATION: Claude writes the answer, grounded in that context instead of guessing from general knowledge.
-
-THE GENUINELY NEW PIECE: Instructing Claude to answer ONLY from the provided context, and say so plainly
-when it CAN'T. Without this rule, Claude might quietly fall back on its own training knowledge-- which
-defeats the entire point of grounding answers in YOUR documents.
+Through the system prompt, Claude is instructed to answer ONLY from the provided context and to say so plainly
+when it CAN'T. Without this rule, Claude might quietly fall back on its own training knowledge-- which defeats
+the entire point of grounding answers in the provided documents.
 """
 import anthropic
 from loguru import logger
@@ -58,11 +57,11 @@ async def answer_from_provided_documents(question: str, limit: int = 5, source_d
     except anthropic.APIStatusError as error:
         logger.error(f"{type(error).__name__} {error.status_code} | {error.message} | request_id={error.request_id}")
         if error.status_code == 429 or error.status_code >= 500:
-            raise ValueError("The AI service is busy right now. Please try again shortly.")
-        raise ValueError("The AI service rejected this request.")
+            raise ValueError("The service (Anthropic) is busy right now. Please try again shortly.")
+        raise ValueError("The service (Anthropic) rejected this request.")
     except anthropic.APIConnectionError as error:
         logger.error(f"{type(error).__name__} | {error} | cause: {error.__cause__!r}")
-        raise ValueError("Couldn't reach the AI service. Please try again.")
+        raise ValueError("Couldn't reach the service (Anthropic). Please try again.")
 
     return {
         "answer": response.content[0].text,
