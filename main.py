@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Security, Depends
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 from config_settings import settings
@@ -27,15 +28,11 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-@app.exception_handler(404)
-async def error_handler(request: Request, exc: HTTPException):
+@app.exception_handler(StarletteHTTPException)
+async def http_error_handler(request: Request, exc: StarletteHTTPException):
     return JSONResponse(
-        status_code=404,
-        content={
-            "status": "error",
-            "code": 404,
-            "message": exc.detail
-        }
+        status_code=exc.status_code,
+        content={"status": "error", "code": exc.status_code, "message": exc.detail},
     )
 
 API_KEY_NAME = "X-API-Key"

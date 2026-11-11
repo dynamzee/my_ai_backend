@@ -58,7 +58,8 @@ async def ask_endpoint(request: AskRequest):
         logger.exception("RAG QUERY FAILED")
         raise HTTPException(status_code=502, detail="QUESTION ANSWERING FAILED. PLEASE TRY AGAIN.")
 
-    return AskResponse(question=request.question, answer=result["answer"], sources=result["sources"])
+    return AskResponse(question=request.question, answer=result["answer"], sources=result["sources"],
+                       source_documents=result["source_documents"])
 
 
 

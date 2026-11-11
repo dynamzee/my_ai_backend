@@ -43,7 +43,7 @@ async def answer_from_provided_documents(question: str, limit: int = 5, source_d
             message = f"No stored chunks found for '{source_document}'. Check the name and try again."
         else:
             message = "No documents have been stored yet."
-        return {"answer": message, "sources": []}
+        return {"answer": message, "sources": [], "source_documents": []}
 
     context_block = "\n\n ******************* \n\n".join(chunk["text"] for chunk in retrieved)
 
@@ -63,10 +63,17 @@ async def answer_from_provided_documents(question: str, limit: int = 5, source_d
         logger.error(f"{type(error).__name__} | {error} | cause: {error.__cause__!r}")
         raise ValueError("Couldn't reach the service (Anthropic). Please try again.")
 
+    source_documents = []
+    for chunk in retrieved:
+        name = chunk["source_document"]
+        if name and name not in source_documents:
+            source_documents.append(name)
+
     return {
         "answer": response.content[0].text,
         "sources": [{"source_document": source["source_document"], "chunk_index": source["chunk_index"],
-                     "preview": source["text"][:100]} for source in retrieved]
+                     "preview": source["text"][:100]} for source in retrieved],
+        "source_documents": source_documents
     }
 
 

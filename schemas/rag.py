@@ -23,5 +23,6 @@ class SourceReference(BaseModel):
 class AskResponse(BaseModel):
     question: str
     answer: str
+    source_documents: list[str]
     sources: list[SourceReference]
 
